@@ -1,0 +1,86 @@
+{
+  "name": "@devscast/flexpay",
+  "version": "1.0.0",
+  "source": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.mjs",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "============= HUSKY =============": "",
+    "prepare": "husky",
+    "commit": "cz",
+    "=========== CODE STYLE ============": "",
+    "check": "prettier ./src --check",
+    "format": "prettier ./src --write",
+    "lint:check": "eslint ./src --debug",
+    "lint:fix": "eslint ./src --fix",
+    "check-types": "tsc --noEmit",
+    "=========== NPM PUBLISH ==============": "",
+    "release": "npm run build && npm publish --access public",
+    "version": "changeset version"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devscast/flexpay-ts.git"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "keywords": [
+    "api",
+    "payment-gateway",
+    "mobile-money"
+  ],
+  "author": "Bernard Ngandu <bernard@devscast.tech>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/devscast/flexpay-ts/issues"
+  },
+  "homepage": "https://github.com/devscast/flexpay-ts#readme",
+  "description": "FlexPay API PHP Client",
+  "devDependencies": {
+    "@changesets/cli": "^2.29.5",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@types/node": "^24.0.13",
+    "@typescript-eslint/eslint-plugin": "^8.36.0",
+    "@typescript-eslint/parser": "^8.36.0",
+    "commitizen": "^3.0.0",
+    "cz-conventional-changelog": "^3.0.1",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.1",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4",
+    "zod": "4.1.5"
+  }
+}

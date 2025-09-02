@@ -1,0 +1,13 @@
+{
+  "code": "0",
+  "message": "Le paiement n'a pas réussi",
+  "transaction": {
+    "reference": "test",
+    "amount": "1.0",
+    "amountCustomer": "1.03",
+    "currency": "USD",
+    "createdAt": "06-05-2024 14:36:02",
+    "status": "1",
+    "channel": "om"
+  }
+}
