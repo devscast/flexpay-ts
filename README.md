@@ -1,19 +1,19 @@
 # Flexpay Typescript
 
-![Lint](https://github.com/devscast/flexpay/actions/workflows/lint.yaml/badge.svg)
-![Test](https://github.com/devscast/flexpay/actions/workflows/test.yaml/badge.svg)
-[![Latest Stable Version](https://poser.pugx.org/devscast/flexpay/version)](https://packagist.org/packages/devscast/flexpay)
-[![Total Downloads](https://poser.pugx.org/devscast/flexpay/downloads)](https://packagist.org/packages/devscast/flexpay)
-[![License](https://poser.pugx.org/devscast/flexpay/license)](https://packagist.org/packages/devscast/flexpay)
+![npm](https://img.shields.io/npm/v/@devscast/flexpay?style=flat-square)
+![npm](https://img.shields.io/npm/dt/@devscast/flexpay?style=flat-square)
+[![Lint](https://github.com/devscast/flexpay-ts/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/devscast/flexpay-ts/actions/workflows/lint.yml)
+[![Tests](https://github.com/devscast/flexpay-ts/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/devscast/flexpay-ts/actions/workflows/test.yml)
+![GitHub](https://img.shields.io/github/license/devscast/flexpay-ts?style=flat-square)
 
 For privacy reasons, Flexpay original documentation cannot be shared without written permission, for more information about credentials
 and implementation details, please reach them at flexpay.cd
 
 ## Installation
-You can use the PHP client by installing the Composer package and adding it to your application’s dependencies:
+You can use the Typescript client by installing the npm package and adding it to your application’s dependencies:
 
 ```bash
-composer require devscast/flexpay
+npm install @devscast/flexpay
 ```
 ## Usage
 
@@ -24,41 +24,34 @@ composer require devscast/flexpay
 
 Then use these credentials to authenticate your client
 
-```php
-use Devscast\Flexpay\Client as Flexpay;
-use Devscast\Flexpay\Credential;
-use Devscast\Flexpay\Environment;
+```ts
+import { Client as Flexpay } from "@devscast/flexpay";
 
-$flexpay = new Flexpay(
-    new Credential('token', 'merchant_code'),
-    Environment::SANDBOX // use Environment::LIVE for production
-);
+const flexpay = new Flexpay("merchant_code", "token", "dev") // use "prod" for production
 ```
 
 ### Create a Payment Request
 
-```php
-use Devscast\Flexpay\Data\Currency;
-use Devscast\Flexpay\Request\CardRequest;
-use Devscast\Flexpay\Request\MobileRequest;
+```typescript
+import { CardRequest, MobileRequest } from "@devscast/flexpay";
 
-$mobile = new MobileRequest(
+const mobile = {
     amount: 10, // 10 USD
-    currency: Currency::USD,
+    currency: "USD",
     phone: "243999999999",
     reference: "your_unique_transaction_reference",
     description: "your_transaction_description",
     callbackUrl: "your_website_webhook_url",
-);
+} as MobileRequest;
 
-$card = new CardRequest(
+const card = {
     amount: 10, // 10 USD
     currency: Currency::USD,
     reference: "your_unique_transaction_reference",
     description: "your_transaction_description",
     callbackUrl: "your_website_webhook_url",
     homeUrl: "your_website_home_url",
-)
+} as CardRequest
 ```
 
 > **Note**: we highly recommend your `callbacks` urls to be unique for each transaction.
@@ -67,17 +60,17 @@ $card = new CardRequest(
 Once called, Flexpay will send a payment request to the user's mobile money account, and the user will have to confirm the payment on their phone.
 after that the payment will be processed and the callback url will be called with the transaction details.
 
-```php
-$response = $flexpay->pay($mobile);
+```typescript
+const response = flexpay.pay(mobile);
 ```
 
 ### Visa Card Payment
 You can set up card payment via VPOS features, which is typically used for online payments.
 it's a gateway that allows you to accept payments from your customers using their credit cards.
 
-```php
-$response = $flexpay->pay($card);
-// redirect to $response->url to complete the payment
+```typescript
+const response = flexpay.pay(card);
+// redirect to response.url to complete the payment
 ```
 
 #### **handling callback (callbackUrl, approveUrl, cancelUrl, declineUrl)**
@@ -85,14 +78,21 @@ Flexpay will send a POST request to the defined callbackUrl and the response wil
 you can use the following code to handle the callback by providing incoming data as array.
 
 ```php
-$state = $flexpay->handleCallback($_POST);
-$state->isSuccessful(); // true or false
+const webhook = flexpay.handleCallback(req.body);
+flexpay.isSuccessful(webhook) // true or false
 ````
 
 ### Check Transaction state
 You don't trust webhook ? you can always check the transaction state by providing the order number.
 
 ```php
-$state = $flexpay->check($payment->orderNumber);
-$state->isSuccessful(); // true or false
+const tx = flexpay.check(mobile.orderNumber);
+flexpay.isSuccessful(tx) // true or false
 ```
+
+## Contributors
+
+<a href="https://github.com/devscast/flexpay-tz/graphs/contributors" title="show all contributors">
+  <img src="https://contrib.rocks/image?repo=devscast/flexpay-ts" alt="contributors"/>
+</a>
+
