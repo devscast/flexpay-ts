@@ -61,7 +61,7 @@ Once called, Flexpay will send a payment request to the user's mobile money acco
 after that the payment will be processed and the callback url will be called with the transaction details.
 
 ```typescript
-const response = flexpay.pay(mobile);
+const response = await  flexpay.pay(mobile);
 ```
 
 ### Visa Card Payment
@@ -69,7 +69,7 @@ You can set up card payment via VPOS features, which is typically used for onlin
 it's a gateway that allows you to accept payments from your customers using their credit cards.
 
 ```typescript
-const response = flexpay.pay(card);
+const response = await flexpay.pay(card);
 // redirect to response.url to complete the payment
 ```
 
@@ -77,7 +77,7 @@ const response = flexpay.pay(card);
 Flexpay will send a POST request to the defined callbackUrl and the response will contain the transaction details.
 you can use the following code to handle the callback by providing incoming data as array.
 
-```php
+```typescript
 const webhook = flexpay.handleCallback(req.body);
 flexpay.isSuccessful(webhook) // true or false
 ````
@@ -85,7 +85,7 @@ flexpay.isSuccessful(webhook) // true or false
 ### Check Transaction state
 You don't trust webhook ? you can always check the transaction state by providing the order number.
 
-```php
+```typescript
 const tx = flexpay.check(mobile.orderNumber);
 flexpay.isSuccessful(tx) // true or false
 ```

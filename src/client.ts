@@ -1,7 +1,7 @@
-import type {z} from "zod";
+import type { z } from "zod";
 
-import {Environment, EnvironmentType} from "@/environment";
-import {AccountException, ClientException, NetworkException} from "@/exception";
+import { Environment, EnvironmentType } from "@/environment";
+import { AccountException, ClientException, NetworkException } from "@/exception";
 import {
   CardRequest,
   CardRequestSchema,
@@ -20,6 +20,7 @@ import {
   PayoutResponse,
   PayoutResponseSchema,
   Status,
+  Type,
 } from "@/schemas";
 
 export class Client {
@@ -27,7 +28,7 @@ export class Client {
   private readonly env: Environment;
 
   constructor(merchant: string, token: string, env: EnvironmentType = "dev") {
-    this.credential = CredentialSchema.parse({merchant, token});
+    this.credential = CredentialSchema.parse({ merchant, token });
     this.env = new Environment(env);
   }
 
@@ -35,6 +36,7 @@ export class Client {
     const body = {
       ...MobileRequestSchema.parse(request),
       merchant: this.credential.merchant,
+      type: Type.MOBILE,
     };
     const data = await this.requestJson("POST", this.env.getMobilePaymentUrl(), body);
 
@@ -68,6 +70,7 @@ export class Client {
     const body = {
       ...PayoutRequestSchema.parse(request),
       merchant: this.credential.merchant,
+      type: Type.MOBILE,
     };
     const data = await this.requestJson("POST", this.env.getPayoutUrl(), body);
 

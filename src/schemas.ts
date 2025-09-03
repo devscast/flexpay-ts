@@ -93,7 +93,6 @@ const BaseRequestSchema = z.object({
 
 export const MobileRequestSchema = BaseRequestSchema.extend({
   phone: z.string().length(12, "The phone number should be 12 characters long, eg: 243123456789"),
-  type: z.nativeEnum(Type).optional().default(Type.MOBILE),
 });
 
 export const CardRequestSchema = z.object({
@@ -114,7 +113,6 @@ export const PayoutRequestSchema = z.object({
   currency: CurrencySchema,
   callbackUrl: Url,
   phone: z.string().length(12, "The phone number should be 12 characters long, eg: 243123456789"),
-  type: z.nativeEnum(Type).optional().default(Type.MOBILE),
 });
 
 export type MobileResponse = z.infer<typeof MobileResponseSchema>;
