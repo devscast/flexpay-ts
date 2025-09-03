@@ -1,7 +1,7 @@
-import type { z } from "zod";
+import type {z} from "zod";
 
-import { Environment, EnvironmentType } from "@/environment";
-import { AccountException, ClientException, NetworkException } from "@/exception";
+import {Environment, EnvironmentType} from "@/environment";
+import {AccountException, ClientException, NetworkException} from "@/exception";
 import {
   CardRequest,
   CardRequestSchema,
@@ -11,7 +11,8 @@ import {
   CheckResponseSchema,
   Credential,
   CredentialSchema,
-  MobileRequest, MobileRequestSchema,
+  MobileRequest,
+  MobileRequestSchema,
   MobileResponse,
   MobileResponseSchema,
   PayoutRequest,
@@ -26,7 +27,7 @@ export class Client {
   private readonly env: Environment;
 
   constructor(merchant: string, token: string, env: EnvironmentType = "dev") {
-    this.credential = CredentialSchema.parse({ merchant, token });
+    this.credential = CredentialSchema.parse({merchant, token});
     this.env = new Environment(env);
   }
 
