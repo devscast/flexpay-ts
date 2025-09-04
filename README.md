@@ -46,7 +46,7 @@ const mobile = {
 
 const card = {
     amount: 10, // 10 USD
-    currency: Currency::USD,
+    currency: "USD",
     reference: "your_unique_transaction_reference",
     description: "your_transaction_description",
     callbackUrl: "your_website_webhook_url",
