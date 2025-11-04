@@ -1,6 +1,6 @@
 {
   "name": "@devscast/flexpay",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "source": "./src/index.ts",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -10,7 +10,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup --minify",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -58,7 +58,7 @@
     "url": "https://github.com/devscast/flexpay-ts/issues"
   },
   "homepage": "https://github.com/devscast/flexpay-ts#readme",
-  "description": "FlexPay API PHP Client",
+  "description": "FlexPay API Typescript Client",
   "devDependencies": {
     "@changesets/cli": "^2.29.5",
     "@commitlint/cli": "^19.8.1",
