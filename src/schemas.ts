@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 export enum Status {
   SUCCESS = 0, // When the request is successfully processed
@@ -15,17 +15,17 @@ export type Currency = z.infer<typeof CurrencySchema>;
 export type Method = "MOBILE" | "CARD";
 
 export const CredentialSchema = z.object({
-  token: z.string().min(1, "The authorization token cannot be empty"),
   merchant: z.string().min(1, "Merchant cannot be empty"),
+  token: z.string().min(1, "The authorization token cannot be empty"),
 });
 
 export type Credential = z.infer<typeof CredentialSchema>;
 
 const StatusCoerce = z
   .union([z.string(), z.number()])
-  .transform(v => (typeof v === "string" ? Number(v) : v))
-  .refine(n => n === Status.SUCCESS || n === Status.FAILURE, "Invalid status code")
-  .transform(n => n as Status);
+  .transform((v) => (typeof v === "string" ? Number(v) : v))
+  .refine((n) => n === Status.SUCCESS || n === Status.FAILURE, "Invalid status code")
+  .transform((n) => n as Status);
 
 const NullableString = z.union([z.string(), z.null()]).optional();
 
@@ -33,18 +33,18 @@ export const MobileResponseSchema = z
   .object({
     code: StatusCoerce,
     message: z.string().optional().default(""),
-    reference: NullableString,
+    orderNumber: NullableString,
     provider_reference: NullableString,
     providerReference: NullableString, // accept already-normalized
-    orderNumber: NullableString,
+    reference: NullableString,
     url: NullableString,
   })
-  .transform(v => ({
+  .transform((v) => ({
     code: v.code,
     message: v.message ?? "",
-    reference: v.reference ?? null,
-    providerReference: (v as any).providerReference ?? v.provider_reference ?? null,
     orderNumber: v.orderNumber ?? null,
+    providerReference: (v as any).providerReference ?? v.provider_reference ?? null,
+    reference: v.reference ?? null,
     url: v.url ?? null,
   }));
 
@@ -56,14 +56,14 @@ export const CardResponseSchema = z.object({
 });
 
 export const TransactionSchema = z.object({
-  reference: z.string(),
-  amount: z.union([z.string(), z.number()]).transform(v => Number(v)),
-  amountCustomer: z.union([z.string(), z.number()]).transform(v => Number(v)),
+  amount: z.union([z.string(), z.number()]).transform((v) => Number(v)),
+  amountCustomer: z.union([z.string(), z.number()]).transform((v) => Number(v)),
+  channel: NullableString,
   createdAt: z.string(),
-  status: StatusCoerce,
   currency: CurrencySchema,
   orderNumber: NullableString,
-  channel: NullableString,
+  reference: z.string(),
+  status: StatusCoerce,
 });
 
 export const CheckResponseSchema = z.object({
@@ -82,13 +82,13 @@ const Url = z.string().min(1);
 
 const BaseRequestSchema = z.object({
   amount: z.number().gt(0, "The transaction amount should be greater than 0"),
-  reference: z.string().min(1, "The transaction reference is mandatory"),
-  currency: CurrencySchema,
-  callbackUrl: Url,
-  description: z.string().optional().nullable(),
   approveUrl: Url.optional().nullable(),
+  callbackUrl: Url,
   cancelUrl: Url.optional().nullable(),
+  currency: CurrencySchema,
   declineUrl: Url.optional().nullable(),
+  description: z.string().optional().nullable(),
+  reference: z.string().min(1, "The transaction reference is mandatory"),
 });
 
 export const MobileRequestSchema = BaseRequestSchema.extend({
@@ -97,22 +97,22 @@ export const MobileRequestSchema = BaseRequestSchema.extend({
 
 export const CardRequestSchema = z.object({
   amount: z.number().gt(0),
-  reference: z.string().min(1).max(25, "The reference must be between 1 and 25 characters"),
-  currency: CurrencySchema,
-  description: z.string().min(1, "The description must be provided"),
-  callbackUrl: Url,
   approveUrl: Url,
+  callbackUrl: Url,
   cancelUrl: Url,
+  currency: CurrencySchema,
   declineUrl: Url,
+  description: z.string().min(1, "The description must be provided"),
   homeUrl: Url,
+  reference: z.string().min(1).max(25, "The reference must be between 1 and 25 characters"),
 });
 
 export const PayoutRequestSchema = z.object({
   amount: z.number().gt(0),
-  reference: z.string().min(1),
-  currency: CurrencySchema,
   callbackUrl: Url,
+  currency: CurrencySchema,
   phone: z.string().length(12, "The phone number should be 12 characters long, eg: 243123456789"),
+  reference: z.string().min(1),
 });
 
 export type MobileResponse = z.infer<typeof MobileResponseSchema>;

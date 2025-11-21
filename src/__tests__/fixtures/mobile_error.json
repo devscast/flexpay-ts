@@ -1,9 +1,8 @@
 {
   "code": "1",
   "message": "Insufficient funds",
-  "reference": null,
-  "providerReference": null,
   "orderNumber": null,
+  "providerReference": null,
+  "reference": null,
   "url": null
 }
-

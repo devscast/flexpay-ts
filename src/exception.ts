@@ -4,7 +4,9 @@ export class NetworkException extends Error {
 
   constructor(message: string, type?: string | null, status?: number | null) {
     const finalMessage =
-      status !== null && status !== undefined ? `${message} (HTTP ${status}/${type ?? "unknown"})` : message;
+      status !== null && status !== undefined
+        ? `${message} (HTTP ${status}/${type ?? "unknown"})`
+        : message;
 
     super(finalMessage);
 

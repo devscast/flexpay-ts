@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import {beforeEach, describe, expect, it, vi} from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {Client} from "@/client";
+import { Client } from "../client";
 
 function loadFixture(name: string): unknown {
   const p = path.resolve(__dirname, "fixtures", name);
@@ -11,10 +11,13 @@ function loadFixture(name: string): unknown {
   return JSON.parse(String(raw));
 }
 
-function mockFetchWithResponse(body: unknown, init?: { status?: number; headers?: Record<string, string> }) {
-  const {status = 200, headers = {"Content-Type": "application/json"}} = init ?? {};
+function mockFetchWithResponse(
+  body: unknown,
+  init?: { status?: number; headers?: Record<string, string> },
+) {
+  const { status = 200, headers = { "Content-Type": "application/json" } } = init ?? {};
   const payload = typeof body === "string" ? body : JSON.stringify(body);
-  const response = new Response(payload, {status, headers});
+  const response = new Response(payload, { headers, status });
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
 }
 
@@ -30,29 +33,31 @@ describe("Client", () => {
     mockFetchWithResponse(loadFixture("card_success.json"));
     const response = await client.card({
       amount: 1,
-      reference: "ref",
-      currency: "USD",
-      description: "test",
-      callbackUrl: "http://localhost:8000/callback",
       approveUrl: "http://localhost:8000/approve",
+      callbackUrl: "http://localhost:8000/callback",
       cancelUrl: "http://localhost:8000/cancel",
+      currency: "USD",
       declineUrl: "http://localhost:8000/decline",
+      description: "test",
       homeUrl: "http://localhost:8000/home",
+      reference: "ref",
     });
 
     expect(client.isSuccessful(response)).toBe(true);
     expect(response.orderNumber).toBe("O42iABI27568020268434827");
-    expect(response.url).toBe("https://gwvisa.flexpay.cd/checkout/bbba6b699af8a70e9cfa010d6d12dba5_670d206b7defb");
+    expect(response.url).toBe(
+      "https://gwvisa.flexpay.cd/checkout/bbba6b699af8a70e9cfa010d6d12dba5_670d206b7defb",
+    );
   });
 
   it("should create a payout", async () => {
     mockFetchWithResponse(loadFixture("payout_success.json"));
     const response = await client.payout({
       amount: 10,
-      reference: "ref",
-      currency: "USD",
       callbackUrl: "http://localhost:8000/callback",
+      currency: "USD",
       phone: "243123456789",
+      reference: "ref",
     });
 
     expect(client.isSuccessful(response)).toBe(true);
@@ -82,10 +87,10 @@ describe("Client", () => {
     mockFetchWithResponse(loadFixture("mobile_success.json"));
     const response = await client.mobile({
       amount: 10,
-      reference: "ref",
-      currency: "USD",
       callbackUrl: "http://localhost:8000/callback",
+      currency: "USD",
       phone: "243123456789",
+      reference: "ref",
     });
 
     expect(client.isSuccessful(response)).toBe(true);
@@ -105,14 +110,14 @@ describe("Client", () => {
     mockFetchWithResponse(loadFixture("card_error.json"));
     const response = await client.card({
       amount: 1,
-      reference: "ref",
-      currency: "USD",
-      description: "test",
-      callbackUrl: "http://localhost:8000/callback",
       approveUrl: "http://localhost:8000/approve",
+      callbackUrl: "http://localhost:8000/callback",
       cancelUrl: "http://localhost:8000/cancel",
+      currency: "USD",
       declineUrl: "http://localhost:8000/decline",
+      description: "test",
       homeUrl: "http://localhost:8000/home",
+      reference: "ref",
     });
 
     expect(client.isSuccessful(response)).toBe(false);
@@ -124,10 +129,10 @@ describe("Client", () => {
     mockFetchWithResponse(loadFixture("mobile_error.json"));
     const response = await client.mobile({
       amount: 10,
-      reference: "ref",
-      currency: "USD",
       callbackUrl: "http://localhost:8000/callback",
+      currency: "USD",
       phone: "243123456789",
+      reference: "ref",
     });
 
     expect(client.isSuccessful(response)).toBe(false);
@@ -139,14 +144,14 @@ describe("Client", () => {
     mockFetchWithResponse({
       code: "1",
       message: "Transaction failed",
-      orderNumber: null
+      orderNumber: null,
     });
     const response = await client.payout({
       amount: 10,
-      reference: "ref",
-      currency: "USD",
       callbackUrl: "http://localhost:8000/callback",
+      currency: "USD",
       phone: "243123456789",
+      reference: "ref",
     });
 
     expect(client.isSuccessful(response)).toBe(false);
@@ -155,23 +160,28 @@ describe("Client", () => {
 
   it("should handle network errors with retry", async () => {
     let callCount = 0;
-    vi.stubGlobal("fetch", vi.fn().mockImplementation(() => {
-      callCount++;
-      if (callCount < 3) {
-        return Promise.reject(new Error("Network error"));
-      }
-      return Promise.resolve(new Response(JSON.stringify(loadFixture("mobile_success.json")), {
-        status: 200,
-        headers: {"Content-Type": "application/json"}
-      }));
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(() => {
+        callCount++;
+        if (callCount < 3) {
+          return Promise.reject(new Error("Network error"));
+        }
+        return Promise.resolve(
+          new Response(JSON.stringify(loadFixture("mobile_success.json")), {
+            headers: { "Content-Type": "application/json" },
+            status: 200,
+          }),
+        );
+      }),
+    );
 
     const response = await client.mobile({
       amount: 10,
-      reference: "ref",
-      currency: "USD",
       callbackUrl: "http://localhost:8000/callback",
+      currency: "USD",
       phone: "243123456789",
+      reference: "ref",
     });
 
     expect(callCount).toBe(3);
@@ -179,59 +189,79 @@ describe("Client", () => {
   });
 
   it("should handle 401 unauthorized errors", async () => {
-    mockFetchWithResponse({
-      message: "Unauthorized access",
-      error: "unauthorized"
-    }, {status: 401});
+    mockFetchWithResponse(
+      {
+        error: "unauthorized",
+        message: "Unauthorized access",
+      },
+      { status: 401 },
+    );
 
-    await expect(client.mobile({
-      amount: 10,
-      reference: "ref",
-      currency: "USD",
-      callbackUrl: "http://localhost:8000/callback",
-      phone: "243123456789",
-    })).rejects.toThrow("Unauthorized access");
+    await expect(
+      client.mobile({
+        amount: 10,
+        callbackUrl: "http://localhost:8000/callback",
+        currency: "USD",
+        phone: "243123456789",
+        reference: "ref",
+      }),
+    ).rejects.toThrow("Unauthorized access");
   });
 
   it("should handle 400 bad request errors", async () => {
-    mockFetchWithResponse({
-      message: "Invalid request parameters",
-      error: "bad_request"
-    }, {status: 400});
+    mockFetchWithResponse(
+      {
+        error: "bad_request",
+        message: "Invalid request parameters",
+      },
+      { status: 400 },
+    );
 
-    await expect(client.card({
-      amount: 1,
-      reference: "ref",
-      currency: "USD",
-      description: "test",
-      callbackUrl: "http://localhost:8000/callback",
-      approveUrl: "http://localhost:8000/approve",
-      cancelUrl: "http://localhost:8000/cancel",
-      declineUrl: "http://localhost:8000/decline",
-      homeUrl: "http://localhost:8000/home",
-    })).rejects.toThrow("Invalid request parameters");
+    await expect(
+      client.card({
+        amount: 1,
+        approveUrl: "http://localhost:8000/approve",
+        callbackUrl: "http://localhost:8000/callback",
+        cancelUrl: "http://localhost:8000/cancel",
+        currency: "USD",
+        declineUrl: "http://localhost:8000/decline",
+        description: "test",
+        homeUrl: "http://localhost:8000/home",
+        reference: "ref",
+      }),
+    ).rejects.toThrow("Invalid request parameters");
   });
 
   it("should handle 500 server errors with retry", async () => {
     let callCount = 0;
-    vi.stubGlobal("fetch", vi.fn().mockImplementation(() => {
-      callCount++;
-      return Promise.resolve(new Response(JSON.stringify({
-        message: "Internal server error",
-        error: "server_error"
-      }), {
-        status: 500,
-        headers: {"Content-Type": "application/json"}
-      }));
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(() => {
+        callCount++;
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              error: "server_error",
+              message: "Internal server error",
+            }),
+            {
+              headers: { "Content-Type": "application/json" },
+              status: 500,
+            },
+          ),
+        );
+      }),
+    );
 
-    await expect(client.payout({
-      amount: 10,
-      reference: "ref",
-      currency: "USD",
-      callbackUrl: "http://localhost:8000/callback",
-      phone: "243123456789",
-    })).rejects.toThrow("Internal server error");
+    await expect(
+      client.payout({
+        amount: 10,
+        callbackUrl: "http://localhost:8000/callback",
+        currency: "USD",
+        phone: "243123456789",
+        reference: "ref",
+      }),
+    ).rejects.toThrow("Internal server error");
 
     expect(callCount).toBe(4); // Initial + 3 retries
   });
@@ -240,10 +270,10 @@ describe("Client", () => {
     mockFetchWithResponse(loadFixture("mobile_success.json"));
     const response = await client.pay({
       amount: 10,
-      reference: "ref",
-      currency: "USD",
       callbackUrl: "http://localhost:8000/callback",
+      currency: "USD",
       phone: "243123456789",
+      reference: "ref",
     });
 
     expect(client.isSuccessful(response)).toBe(true);
@@ -254,14 +284,14 @@ describe("Client", () => {
     mockFetchWithResponse(loadFixture("card_success.json"));
     const response = await client.pay({
       amount: 1,
-      reference: "ref",
-      currency: "USD",
-      description: "test",
-      callbackUrl: "http://localhost:8000/callback",
       approveUrl: "http://localhost:8000/approve",
+      callbackUrl: "http://localhost:8000/callback",
       cancelUrl: "http://localhost:8000/cancel",
+      currency: "USD",
       declineUrl: "http://localhost:8000/decline",
+      description: "test",
       homeUrl: "http://localhost:8000/home",
+      reference: "ref",
     });
 
     expect(client.isSuccessful(response)).toBe(true);
@@ -269,70 +299,82 @@ describe("Client", () => {
   });
 
   it("should throw error for unsupported request shape in pay method", async () => {
-    await expect(client.pay({
-      amount: 10,
-      reference: "ref",
-      currency: "USD",
-      callbackUrl: "http://localhost:8000/callback",
-    } as any)).rejects.toThrow("Unsupported request shape");
+    await expect(
+      client.pay({
+        amount: 10,
+        callbackUrl: "http://localhost:8000/callback",
+        currency: "USD",
+        reference: "ref",
+      } as any),
+    ).rejects.toThrow("Unsupported request shape");
   });
 
   it("should validate mobile request parameters", async () => {
-    await expect(client.mobile({
-      amount: -1, // Invalid amount
-      reference: "ref",
-      currency: "USD",
-      callbackUrl: "http://localhost:8000/callback",
-      phone: "243123456789",
-    })).rejects.toThrow();
+    await expect(
+      client.mobile({
+        amount: -1, // Invalid amount
+        callbackUrl: "http://localhost:8000/callback",
+        currency: "USD",
+        phone: "243123456789",
+        reference: "ref",
+      }),
+    ).rejects.toThrow();
   });
 
   it("should validate phone number length", async () => {
-    await expect(client.mobile({
-      amount: 10,
-      reference: "ref",
-      currency: "USD",
-      callbackUrl: "http://localhost:8000/callback",
-      phone: "24312345", // Too short
-    })).rejects.toThrow();
+    await expect(
+      client.mobile({
+        amount: 10,
+        callbackUrl: "http://localhost:8000/callback",
+        currency: "USD",
+        phone: "24312345", // Too short
+        reference: "ref",
+      }),
+    ).rejects.toThrow();
   });
 
   it("should validate card request parameters", async () => {
-    await expect(client.card({
-      amount: 1,
-      reference: "", // Empty reference
-      currency: "USD",
-      description: "test",
-      callbackUrl: "http://localhost:8000/callback",
-      approveUrl: "http://localhost:8000/approve",
-      cancelUrl: "http://localhost:8000/cancel",
-      declineUrl: "http://localhost:8000/decline",
-      homeUrl: "http://localhost:8000/home",
-    })).rejects.toThrow();
+    await expect(
+      client.card({
+        amount: 1,
+        approveUrl: "http://localhost:8000/approve",
+        callbackUrl: "http://localhost:8000/callback",
+        cancelUrl: "http://localhost:8000/cancel",
+        currency: "USD",
+        declineUrl: "http://localhost:8000/decline",
+        description: "test",
+        homeUrl: "http://localhost:8000/home",
+        reference: "", // Empty reference
+      }),
+    ).rejects.toThrow();
   });
 
   it("should validate card reference length", async () => {
-    await expect(client.card({
-      amount: 1,
-      reference: "a".repeat(26), // Too long (>25 chars)
-      currency: "USD",
-      description: "test",
-      callbackUrl: "http://localhost:8000/callback",
-      approveUrl: "http://localhost:8000/approve",
-      cancelUrl: "http://localhost:8000/cancel",
-      declineUrl: "http://localhost:8000/decline",
-      homeUrl: "http://localhost:8000/home",
-    })).rejects.toThrow();
+    await expect(
+      client.card({
+        amount: 1,
+        approveUrl: "http://localhost:8000/approve",
+        callbackUrl: "http://localhost:8000/callback",
+        cancelUrl: "http://localhost:8000/cancel",
+        currency: "USD",
+        declineUrl: "http://localhost:8000/decline",
+        description: "test",
+        homeUrl: "http://localhost:8000/home",
+        reference: "a".repeat(26), // Too long (>25 chars)
+      }),
+    ).rejects.toThrow();
   });
 
   it("should validate payout parameters", async () => {
-    await expect(client.payout({
-      amount: 0, // Invalid amount
-      reference: "ref",
-      currency: "USD",
-      callbackUrl: "http://localhost:8000/callback",
-      phone: "243123456789",
-    })).rejects.toThrow();
+    await expect(
+      client.payout({
+        amount: 0, // Invalid amount
+        callbackUrl: "http://localhost:8000/callback",
+        currency: "USD",
+        phone: "243123456789",
+        reference: "ref",
+      }),
+    ).rejects.toThrow();
   });
 
   it("should create client with production environment", () => {
@@ -345,7 +387,6 @@ describe("Client", () => {
     expect(devClient).toBeInstanceOf(Client);
   });
 
-
   it("should handle empty merchant name", () => {
     expect(() => new Client("", "token")).toThrow();
   });
@@ -355,47 +396,57 @@ describe("Client", () => {
   });
 
   it("should handle non-JSON response", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
-      new Response("Not JSON", {
-        status: 200,
-        headers: {"Content-Type": "text/plain"}
-      })
-    ));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response("Not JSON", {
+          headers: { "Content-Type": "text/plain" },
+          status: 200,
+        }),
+      ),
+    );
 
-    await expect(client.mobile({
-      amount: 10,
-      reference: "ref",
-      currency: "USD",
-      callbackUrl: "http://localhost:8000/callback",
-      phone: "243123456789",
-    })).rejects.toThrow();
+    await expect(
+      client.mobile({
+        amount: 10,
+        callbackUrl: "http://localhost:8000/callback",
+        currency: "USD",
+        phone: "243123456789",
+        reference: "ref",
+      }),
+    ).rejects.toThrow();
   });
 
   it("should handle malformed JSON response", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
-      new Response("invalid json", {
-        status: 200,
-        headers: {"Content-Type": "application/json"}
-      })
-    ));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response("invalid json", {
+          headers: { "Content-Type": "application/json" },
+          status: 200,
+        }),
+      ),
+    );
 
-    await expect(client.mobile({
-      amount: 10,
-      reference: "ref",
-      currency: "USD",
-      callbackUrl: "http://localhost:8000/callback",
-      phone: "243123456789",
-    })).rejects.toThrow();
+    await expect(
+      client.mobile({
+        amount: 10,
+        callbackUrl: "http://localhost:8000/callback",
+        currency: "USD",
+        phone: "243123456789",
+        reference: "ref",
+      }),
+    ).rejects.toThrow();
   });
 
   it("should handle callback with provider_reference field", () => {
     const data = {
       code: 0,
       message: "Success",
-      reference: "test-ref",
-      provider_reference: "provider-123",
       orderNumber: "order-123",
-      url: null
+      provider_reference: "provider-123",
+      reference: "test-ref",
+      url: null,
     };
     const response = client.handleCallback(data);
 
@@ -407,8 +458,8 @@ describe("Client", () => {
     const data = {
       code: "0", // String instead of number
       message: "Success",
+      orderNumber: "order-123",
       reference: "test-ref",
-      orderNumber: "order-123"
     };
     const response = client.handleCallback(data);
 

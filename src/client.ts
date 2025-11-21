@@ -1,27 +1,27 @@
-import type { z } from "zod";
+import type * as z from "zod";
 
-import { Environment, EnvironmentType } from "@/environment";
-import { AccountException, ClientException, NetworkException } from "@/exception";
+import { Environment, type EnvironmentType } from "./environment";
+import { AccountException, ClientException, NetworkException } from "./exception";
 import {
-  CardRequest,
+  type CardRequest,
   CardRequestSchema,
-  CardResponse,
+  type CardResponse,
   CardResponseSchema,
-  CheckResponse,
+  type CheckResponse,
   CheckResponseSchema,
-  Credential,
+  type Credential,
   CredentialSchema,
-  MobileRequest,
+  type MobileRequest,
   MobileRequestSchema,
-  MobileResponse,
+  type MobileResponse,
   MobileResponseSchema,
-  PayoutRequest,
+  type PayoutRequest,
   PayoutRequestSchema,
-  PayoutResponse,
+  type PayoutResponse,
   PayoutResponseSchema,
   Status,
   Type,
-} from "@/schemas";
+} from "./schemas";
 
 export class Client {
   private readonly credential: Credential;
@@ -46,8 +46,8 @@ export class Client {
   async card(request: CardRequest): Promise<CardResponse> {
     const body = {
       ...CardRequestSchema.parse(request),
-      merchant: this.credential.merchant,
       authorization: `Bearer ${this.credential.token}`,
+      merchant: this.credential.merchant,
     };
     const data = await this.requestJson("POST", this.env.getCardPaymentUrl(), body);
 
@@ -88,9 +88,9 @@ export class Client {
   private async requestJson(method: "GET" | "POST", url: string, jsonBody?: unknown): Promise<any> {
     const headers: Record<string, string> = {
       Accept: "application/json",
-      "Content-Type": "application/json",
       // Parity with PHP client (auth_bearer); also most FlexPay endpoints expect Bearer
       Authorization: `Bearer ${this.credential.token}`,
+      "Content-Type": "application/json",
     };
 
     const maxRetries = 3;
@@ -99,9 +99,9 @@ export class Client {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const response = await fetch(url, {
-          method,
-          headers,
           body: method === "POST" ? JSON.stringify(jsonBody ?? {}) : undefined,
+          headers,
+          method,
         });
 
         const contentType = response.headers.get("content-type") || "";
@@ -132,7 +132,10 @@ export class Client {
         if (
           err instanceof AccountException ||
           err instanceof ClientException ||
-          (err instanceof NetworkException && typeof err.status === "number" && err.status >= 400 && err.status < 500)
+          (err instanceof NetworkException &&
+            typeof err.status === "number" &&
+            err.status >= 400 &&
+            err.status < 500)
         ) {
           // No retry on 4xx equivalents
           throw err;
@@ -140,8 +143,8 @@ export class Client {
 
         // Retry on network/5xx errors
         if (attempt < maxRetries) {
-          const delay = baseDelayMs * Math.pow(2, attempt); // 500, 1000, 2000
-          await new Promise(r => setTimeout(r, delay));
+          const delay = baseDelayMs * 2 ** attempt; // 500, 1000, 2000
+          await new Promise((r) => setTimeout(r, delay));
           continue;
         }
 

@@ -1,8 +1,8 @@
 {
   "code": "0",
   "message": "Transaction envoyée avec succès. Veuillez valider le push message",
-  "reference": null,
-  "provider_reference": null,
   "orderNumber": "DtX9SmCYojWW243123456789",
+  "provider_reference": null,
+  "reference": null,
   "url": null
 }
